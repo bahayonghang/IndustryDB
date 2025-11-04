@@ -1,0 +1,43 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/industrydb-core",
+    "crates/industrydb-postgres",
+    "crates/industrydb-sqlite",
+    "crates/industrydb-mssql",
+    "crates/industrydb-py",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["IndustryDB Contributors"]
+license = "MIT"
+repository = "https://github.com/yourusername/industrydb"
+
+[workspace.dependencies]
+# Core dependencies
+polars = { version = "0.44", features = ["lazy", "sql", "dtype-full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Database - sqlx with async connection pooling
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls"] }
+
+# Python bindings - use pyo3 0.21 to match polars 0.44 internal deps
+pyo3 = { version = "0.21", features = ["extension-module", "abi3-py38"] }
+# Note: pyo3-polars 0.15 may have limited compatibility with polars 0.44
+# Consider manual DataFrame conversion if issues persist
+pyo3-polars = { version = "0.15" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true

@@ -1,0 +1,19 @@
+[package]
+name = "industrydb-sqlite"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "SQLite connector for IndustryDB"
+
+[dependencies]
+industrydb-core = { path = "../industrydb-core" }
+polars.workspace = true
+sqlx = { workspace = true, features = ["sqlite"] }
+tokio.workspace = true
+thiserror.workspace = true
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"

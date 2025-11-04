@@ -1,0 +1,28 @@
+# Example IndustryDB Configuration File
+# Copy this file to config.toml and update with your credentials
+
+[connections.local_postgres]
+type = "postgres"
+host = "localhost"
+port = 5432
+database = "mydb"
+username = "postgres"
+password = "password"
+
+[connections.local_sqlite]
+type = "sqlite"
+path = "./database.db"
+
+[connections.production_mssql]
+type = "mssql"
+server = "localhost"
+port = 1433
+database = "production"
+username = "sa"
+password = "YourStrong!Passw0rd"
+# Optional: Use Windows authentication
+# trusted_connection = true
+
+# Additional connection options can be added as needed
+# timeout = 30
+# pool_size = 10

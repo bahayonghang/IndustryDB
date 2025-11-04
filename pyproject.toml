@@ -1,0 +1,190 @@
+[project]
+name = "industrydb"
+version = "0.1.0"
+description = "High-performance database middleware powered by Rust and Polars"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "IndustryDB Contributors" }
+]
+keywords = ["database", "polars", "rust", "mssql", "postgres", "sqlite"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Database",
+]
+
+dependencies = [
+    "polars>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Build tools
+    "maturin>=1.0,<2.0",
+    
+    # Testing
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "pytest-xdist>=3.0",  # Parallel test execution
+    
+    # Code quality
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "black>=23.0",  # Alternative formatter
+    
+    # Type stubs
+    "types-toml>=0.10",
+]
+
+config = [
+    "rtoml>=0.9.0",  # Fast TOML parser
+    "tomli>=2.0; python_version<'3.11'",  # Fallback for older Python
+]
+
+test = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+]
+
+all = [
+    "industrydb[dev,config,test]",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/industrydb"
+Documentation = "https://github.com/yourusername/industrydb#readme"
+Repository = "https://github.com/yourusername/industrydb"
+Issues = "https://github.com/yourusername/industrydb/issues"
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+# 指定 Python 绑定 crate 的路径
+manifest-path = "crates/industrydb-py/Cargo.toml"
+python-source = "python"
+module-name = "industrydb.industrydb"
+features = ["pyo3/extension-module"]
+
+# Strip symbols for smaller binary size
+strip = true
+
+# Build wheels for multiple Python versions
+compatibility = "linux"  # Can be: linux, manylinux, musllinux, windows, macos
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--color=yes",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["python/industrydb"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "rtoml.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tomli.*"
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"tests/*" = ["S101"]  # Allow assert in tests
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  | \.git
+  | \.venv
+  | build
+  | dist
+  | target
+)/
+'''
