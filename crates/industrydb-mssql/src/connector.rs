@@ -9,9 +9,7 @@ use industrydb_core::{
     traits::DatabaseConnector,
 };
 use polars::prelude::*;
-use tiberius::{Client, ColumnData, Config, Row as TiberiusRow};
-use tokio::net::TcpStream;
-use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
+use tiberius::{Config, Row as TiberiusRow};
 
 type TiberiusPool = Pool<ConnectionManager>;
 

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 use crate::config::PyDatabaseConfig;
-use crate::errors::{to_py_err, to_py_result};
+use crate::errors::to_py_err;
 use industrydb_core::{
     config::{ConnectionConfig, DatabaseType},
     traits::CrudOperations,
@@ -125,6 +125,7 @@ impl PyConnection {
     }
 
     /// Select data from table
+    #[allow(clippy::too_many_arguments)]
     #[pyo3(signature = (table, columns=None, where_clause=None, params=None, limit=None, **_kwargs))]
     fn select(
         &self,

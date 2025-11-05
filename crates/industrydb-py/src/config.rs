@@ -1,7 +1,7 @@
 //! Python configuration bindings
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString};
+use pyo3::types::PyDict;
 use std::collections::HashMap;
 
 use crate::errors::{to_py_err, to_py_result};
@@ -18,6 +18,7 @@ pub struct PyDatabaseConfig {
 impl PyDatabaseConfig {
     /// Create a new database configuration
     #[new]
+    #[allow(clippy::too_many_arguments)]
     #[pyo3(signature = (db_type, host=None, port=None, database=None, username=None, password=None, path=None, server=None, **kwargs))]
     fn new(
         db_type: String,

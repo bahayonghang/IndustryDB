@@ -143,8 +143,8 @@ mod tests {
     use super::*;
     use industrydb_core::config::DatabaseType;
 
-    #[test]
-    fn test_connector_creation() {
+    #[tokio::test]
+    async fn test_connector_creation() {
         let config = ConnectionConfig {
             db_type: DatabaseType::Postgres,
             host: Some("localhost".to_string()),
@@ -159,7 +159,7 @@ mod tests {
             extra: Default::default(),
         };
 
-        let connector = PostgresConnector::new(&config);
+        let connector = PostgresConnector::new(&config).await;
         assert!(connector.is_ok());
     }
 }

@@ -83,7 +83,7 @@ features = ["pyo3/extension-module"]
 strip = true
 
 # Build wheels for multiple Python versions
-compatibility = "linux"  # Can be: linux, manylinux, musllinux, windows, macos
+# compatibility = "linux"  # Can be: linux, manylinux, musllinux, windows, macos
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -128,7 +128,7 @@ exclude_lines = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

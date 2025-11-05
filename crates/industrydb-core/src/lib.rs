@@ -21,7 +21,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_version() {
-        assert!(!VERSION.is_empty());
+    fn test_version_format() {
+        // VERSION should follow semantic versioning format (e.g., "0.1.0")
+        let parts: Vec<&str> = VERSION.split('.').collect();
+        assert!(
+            parts.len() >= 2,
+            "Version should have at least major.minor format"
+        );
     }
 }

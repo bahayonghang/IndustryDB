@@ -5,19 +5,18 @@ A Rust-powered database connector supporting MSSQL, PostgreSQL, and SQLite
 with Polars DataFrame integration.
 """
 
-from .industrydb import (
-    __version__,
-    __author__,
-    IndustryDbError,
-    DatabaseConnectionError,
-    QueryExecutionError,
-    ConfigurationError,
-)
-
 # Re-export main classes for convenience
 from .config import load_config
-from .industrydb import PyDatabaseConfig as DatabaseConfig
+from .industrydb import (
+    ConfigurationError,
+    DatabaseConnectionError,
+    IndustryDbError,
+    QueryExecutionError,
+    __author__,
+    __version__,
+)
 from .industrydb import PyConnection as Connection
+from .industrydb import PyDatabaseConfig as DatabaseConfig
 
 __all__ = [
     "__version__",
