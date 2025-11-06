@@ -1,0 +1,89 @@
+# IndustryDB 文档开发工具
+# 使用 just 命令运行各种文档相关任务
+
+# 默认任务：显示所有可用命令
+default:
+    @just --list
+
+# 安装文档依赖
+install:
+    @echo "📦 安装文档依赖..."
+    npm install
+
+# 启动开发服务器（中文）
+dev-zh:
+    @echo "🚀 启动中文文档开发服务器..."
+    npm run docs:dev -- --host 0.0.0.0
+
+# 启动开发服务器（英文）
+dev-en:
+    @echo "🚀 启动英文文档开发服务器..."
+    npm run docs:dev -- --host 0.0.0.0
+
+# 启动开发服务器（默认）
+dev: dev-zh
+
+# 构建文档
+build:
+    @echo "🏗️  构建文档..."
+    npm run docs:build
+
+# 预览构建的文档
+preview:
+    @echo "👁️  预览构建的文档..."
+    npm run docs:preview -- --host 0.0.0.0
+
+# 清理构建产物
+clean:
+    @echo "🧹 清理构建产物..."
+    rm -rf .vitepress/dist
+    rm -rf .vitepress/cache
+    rm -rf node_modules
+
+# 完整的开发流程：安装依赖
+start: install
+
+# 完整的构建流程：清理 -> 安装 -> 构建
+release: clean install build
+
+# 检查链接
+check:
+    @echo "🔍 检查文档链接..."
+    npm run docs:build
+
+# 格式化文档
+fmt:
+    @echo "✨ 格式化 Markdown 文档..."
+    find . -name "*.md" -type f -not -path "./node_modules/*" -not -path "./.vitepress/*" | xargs prettier --write
+
+# 快速启动（跳过安装检查）
+quick:
+    @echo "⚡ 快速启动开发服务器..."
+    npm run docs:dev -- --host 0.0.0.0
+
+# 部署准备
+deploy-prep: clean install build
+    @echo "✅ 部署包准备完成！"
+    @echo "📁 构建产物位于: .vitepress/dist"
+
+# 帮助信息
+help:
+    @echo "IndustryDB 文档开发工具"
+    @echo ""
+    @echo "常用命令："
+    @echo "  just install     - 安装依赖"
+    @echo "  just start       - 安装依赖（首次运行）"
+    @echo "  just dev         - 启动开发服务器（中文，默认）"
+    @echo "  just dev-en      - 启动开发服务器（英文）"
+    @echo "  just build       - 构建生产版本"
+    @echo "  just preview     - 预览构建结果"
+    @echo "  just clean       - 清理构建产物"
+    @echo ""
+    @echo "完整流程："
+    @echo "  just release     - 清理、安装、构建"
+    @echo "  just deploy-prep - 准备部署包"
+    @echo ""
+    @echo "其他："
+    @echo "  just check       - 检查文档链接"
+    @echo "  just fmt         - 格式化文档"
+    @echo "  just quick       - 快速启动（跳过安装）"
