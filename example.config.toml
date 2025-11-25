@@ -20,6 +20,11 @@ port = 1433
 database = "production"
 username = "sa"
 password = "YourStrong!Passw0rd"
+# target selects the domain client to create via factory helpers:
+# one of: base, web, timeseries, quality, online_trainer,
+# realtime_predict, realtime_predict_alter, realtime_predict_sequence,
+# decision_history, decision_making, operation, model_status
+target = "web"
 # Optional: Use Windows authentication
 # trusted_connection = true
 

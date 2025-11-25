@@ -7,7 +7,7 @@ use industrydb_core::{
     traits::DatabaseConnector,
 };
 use polars::prelude::*;
-use sqlx::{postgres::PgRow, Column as SqlxColumn, PgPool, Row, TypeInfo};
+use sqlx::{Column as SqlxColumn, PgPool, Row, TypeInfo, postgres::PgRow};
 
 /// PostgreSQL database connector with connection pool
 pub struct PostgresConnector {

@@ -7,7 +7,7 @@ use industrydb_core::{
     traits::DatabaseConnector,
 };
 use polars::prelude::*;
-use sqlx::{sqlite::SqliteRow, Column as SqlxColumn, Row, SqlitePool};
+use sqlx::{Column as SqlxColumn, Row, SqlitePool, sqlite::SqliteRow};
 
 /// SQLite database connector with connection pool
 pub struct SqliteConnector {

@@ -228,6 +228,20 @@ industrydb/
 - **Separation of Concerns**: Core abstractions, database implementations, and bindings are separate
 - **Type Safety**: Comprehensive type stubs for excellent IDE support
 
+## MSSQL Quickstart
+
+- 配置示例参见 `example.config.toml` 的 `[connections.production_mssql]`，关键字段：`type="mssql"`, `server/host`, `port`, `database`, `username`, `password`。  
+- 选择目标客户端：`target` 可为 `base|web|timeseries|quality|online_trainer|realtime_predict|realtime_predict_alter|realtime_predict_sequence|decision_history|decision_making|operation|model_status`。  
+- Python 使用：  
+  ```python
+  from industrydb import DatabaseConfig, create_timeseries_client
+  cfg = DatabaseConfig(type="mssql", server="localhost", port=1433,
+                       database="production", username="sa", password="***")
+  ts = create_timeseries_client(cfg)
+  df = ts.get_latest_input_data_by_column(["TagA", "TagB"])
+  ```  
+- 约束解析、模型参数解析与参考库 `industrytslib` 保持一致，返回 Polars DataFrame / JSON 字符串。
+
 ## Performance
 
 IndustryDB leverages Rust's performance and Polars' efficient data structures:

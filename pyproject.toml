@@ -1,6 +1,6 @@
 [project]
 name = "industrydb"
-version = "0.1.0"
+version = "0.2.0"
 description = "High-performance database middleware powered by Rust and Polars"
 readme = "README.md"
 requires-python = ">=3.8"

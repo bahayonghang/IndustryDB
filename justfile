@@ -18,7 +18,7 @@ setup:
 # 同步 Python 依赖
 sync:
     @echo "🔄 同步依赖..."
-    uv sync
+    uv sync --all-extras
 
 # 安装开发依赖
 install-dev:
