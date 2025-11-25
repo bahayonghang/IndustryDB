@@ -48,7 +48,11 @@ fn parse_datetime(value: &str) -> Option<NaiveDateTime> {
     NaiveDateTime::parse_from_str(value, "%Y-%m-%d %H:%M:%S")
         .ok()
         .or_else(|| NaiveDateTime::parse_from_str(value, "%Y-%m-%d").ok())
-        .or_else(|| DateTime::parse_from_rfc3339(value).ok().map(|dt| dt.naive_utc()))
+        .or_else(|| {
+            DateTime::parse_from_rfc3339(value)
+                .ok()
+                .map(|dt| dt.naive_utc())
+        })
 }
 
 fn parse_chunk_size(chunk_size: &str) -> ChronoDuration {
@@ -159,10 +163,7 @@ impl TimeSeriesClient {
     }
 
     /// 获取指定列的最新真实值。
-    pub async fn get_latest_true_value_by_column(
-        &self,
-        column_name: &str,
-    ) -> Result<DataFrame> {
+    pub async fn get_latest_true_value_by_column(&self, column_name: &str) -> Result<DataFrame> {
         let sql = format!(
             "SELECT TOP (1) TagVal FROM 历史表 WHERE DateTime BETWEEN DATEADD(HOUR, -1, GETDATE()) AND GETDATE() AND TagName = '{col}' ORDER BY DateTime DESC",
             col = column_name
@@ -183,10 +184,7 @@ impl TimeSeriesClient {
     }
 
     /// 在线输入数据获取（按列名列表）。
-    pub async fn get_input_data_online(
-        &self,
-        name_list: &[&str],
-    ) -> Result<DataFrame> {
+    pub async fn get_input_data_online(&self, name_list: &[&str]) -> Result<DataFrame> {
         if name_list.is_empty() {
             return Ok(DataFrame::default());
         }
@@ -210,10 +208,7 @@ impl TimeSeriesClient {
     }
 
     /// 在线输出数据获取（按列名列表）。
-    pub async fn get_output_data_online(
-        &self,
-        name_list: &[&str],
-    ) -> Result<DataFrame> {
+    pub async fn get_output_data_online(&self, name_list: &[&str]) -> Result<DataFrame> {
         if name_list.is_empty() {
             return Ok(DataFrame::default());
         }
@@ -372,9 +367,7 @@ impl TimeSeriesClient {
         }
 
         let mut iter = chunks.into_iter();
-        let mut df = iter
-            .next()
-            .unwrap_or_else(DataFrame::default);
+        let mut df = iter.next().unwrap_or_default();
         for chunk in iter {
             df.vstack_mut(&chunk)?;
         }
@@ -458,9 +451,7 @@ impl TimeSeriesClient {
             return Ok(DataFrame::default());
         }
         let mut iter = chunks.into_iter();
-        let mut df = iter
-            .next()
-            .unwrap_or_else(DataFrame::default);
+        let mut df = iter.next().unwrap_or_default();
         for chunk in iter {
             df.vstack_mut(&chunk)?;
         }
@@ -601,10 +592,7 @@ impl TimeSeriesClient {
     }
 
     /// 读取水泥磨目标 (TagDatabase 驱动)。
-    pub async fn get_cement_mill_target(
-        &self,
-        optimization_procedure: &str,
-    ) -> Result<(i64, f64)> {
+    pub async fn get_cement_mill_target(&self, optimization_procedure: &str) -> Result<(i64, f64)> {
         let cement_variety_sql = match optimization_procedure {
             "水泥磨" | "水泥A磨" => Some(
                 "SELECT tagName FROM [TagDataBase] WHERE tagName IN (
@@ -639,8 +627,8 @@ impl TimeSeriesClient {
             return Ok((350, 5.25));
         }
 
-        let variety = query_first_tag_name(self.connector.as_ref(), cement_variety_sql.unwrap())
-            .await?;
+        let variety =
+            query_first_tag_name(self.connector.as_ref(), cement_variety_sql.unwrap()).await?;
         let Some(variety) = variety else {
             return Ok((350, 5.25));
         };
@@ -809,10 +797,10 @@ impl TimeSeriesClient {
         optimization_solution_results: &[f64],
         optimization_type: &str,
     ) -> Result<()> {
-        let mut pairs = optimization_name_list
+        let pairs = optimization_name_list
             .iter()
             .zip(optimization_solution_results.iter());
-        while let Some((name, value)) = pairs.next() {
+        for (name, value) in pairs {
             let rounded = (value * 100.0).round() / 100.0;
             let sql = format!(
                 "MERGE decision AS t USING (SELECT '{proj}' AS optimization_project_name, '{var}' AS variable_name, '{otype}' AS optimization_type) AS s ON (t.optimization_project_name = s.optimization_project_name AND t.variable_name = s.variable_name AND t.optimization_type = s.optimization_type) WHEN MATCHED THEN UPDATE SET DateTime = GETDATE(), decision_value = {val} WHEN NOT MATCHED THEN INSERT (DateTime, optimization_project_name, variable_name, decision_value, optimization_type) VALUES (GETDATE(), '{proj}', '{var}', {val}, '{otype}');",
@@ -1005,9 +993,7 @@ async fn pivot_history_between_truncated(
         .iter()
         .map(|c| format!("[{}]", escape_ident(c)))
         .collect();
-    let top_clause = top
-        .map(|t| format!("TOP {} ", t))
-        .unwrap_or_else(String::new);
+    let top_clause = top.map(|t| format!("TOP {} ", t)).unwrap_or_default();
 
     let sql = format!(
         "SELECT {top} DateTime, {cols} FROM (SELECT {date_expr} AS DateTime, TagName, TagVal FROM [历史表] WHERE DateTime BETWEEN {start} AND {end} AND TagName IN ('{names}')) AS src PIVOT (AVG(TagVal) FOR TagName IN ({cols})) AS pvt ORDER BY DateTime",

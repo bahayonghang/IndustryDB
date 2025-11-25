@@ -42,6 +42,7 @@ impl ModelStatusClient {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn insert_model_status(
         &self,
         project_name: &str,

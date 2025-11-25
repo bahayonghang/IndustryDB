@@ -3,7 +3,7 @@ use std::sync::Arc;
 use industrydb_core::error::{IndustryDbError, Result};
 use polars::prelude::{DataFrame, IntoColumn, NamedFrom, Series};
 use regex::Regex;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
 use super::{execute_modify, query_df};
 use crate::connector::MssqlConnector;
@@ -523,9 +523,7 @@ fn parse_constraints_impl(constraints_str: &str, with_extra: bool) -> Result<Dat
         mins.push(min_v);
         maxs.push(max_v);
         if with_extra {
-            let mag = caps
-                .get(4)
-                .and_then(|m| m.as_str().parse::<f64>().ok());
+            let mag = caps.get(4).and_then(|m| m.as_str().parse::<f64>().ok());
             let hist = caps.get(5).map(|m| m.as_str().to_string());
             magnitudes.push(mag);
             history_refs.push(hist);
