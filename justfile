@@ -177,7 +177,32 @@ dev: fmt check develop
     @echo "✅ 开发构建完成"
 
 # 完整检查：格式化 + 检查 + 测试
-ci: fmt lint test
+ci: version-sync
+    @echo "🔍 运行 Ruff 格式检查..."
+    uvx ruff format --check --diff .
+    @echo "🔍 运行 Ruff Lint..."
+    uvx ruff check .
+    @echo "🦀 检查 Rust 格式..."
+    cargo fmt --all -- --check
+    @echo "🦀 运行 Clippy（与 CI 一致）..."
+    RUSTFLAGS="-D warnings" cargo clippy --workspace --all-targets --all-features -- -D warnings
+    @echo "🧪 运行 Rust 测试（全特性）..."
+    RUSTFLAGS="-D warnings" cargo test --workspace --all-features
+    @echo "📦 构建 Python wheel（与 CI 一致）..."
+    uv run maturin build --release --out dist
+    @echo "🧪 准备 Python 虚拟环境（优先复用 .venv）..."
+    @if [ -d ".venv" ]; then \
+        echo "♻️ 复用现有 .venv"; \
+    else \
+        echo "✨ 创建新的 .venv"; \
+        uv venv; \
+    fi
+    uv pip install --python .venv/bin/python dist/*.whl pytest pytest-asyncio
+    @echo "🧪 运行 Python 测试（wheel 环境）..."
+    uv run --python .venv/bin/python pytest tests/ -v
+    @echo "🔬 运行 mypy 类型检查..."
+    uv pip install --python .venv/bin/python mypy types-toml
+    uv run --python .venv/bin/python mypy python/industrydb --ignore-missing-imports
     @echo "✅ CI 检查完成"
 
 # 重新构建（清理 + 构建 + 开发模式）
@@ -267,6 +292,11 @@ version VERSION:
     @echo "请手动更新以下文件中的版本号:"
     @echo "  - Cargo.toml (workspace.package.version)"
     @echo "  - pyproject.toml (project.version)"
+
+# 同步版本号：将仓库中所有版本号与 Cargo.toml 对齐
+version-sync:
+    @echo "🔄 同步版本号到 Cargo.toml 中定义的 workspace.package.version..."
+    @python3 -c "from pathlib import Path; import re, sys; root = Path.cwd(); cargo_text = (root / 'Cargo.toml').read_text(encoding='utf-8'); pkg = re.search(r'(?ms)\[workspace\.package\](.*?)(?:\n\[|\Z)', cargo_text) or sys.exit('未找到 [workspace.package] 段落，无法同步版本'); version = re.search(r'(?m)^version\s*=\s*\"([^\"]+)\"', pkg.group(1)) or sys.exit('未找到 workspace.package.version 字段'); cargo_version = version.group(1); pyproject_path = root / 'pyproject.toml'; py_text = pyproject_path.read_text(encoding='utf-8'); project = re.search(r'(?ms)\[project\](.*?)(?:\n\[|\Z)', py_text) or sys.exit('未找到 [project] 段落，无法同步版本'); body = project.group(1); new_body, replaced = re.subn(r'(?m)^version\s*=\s*\"[^\"]+\"', f'version = \"{cargo_version}\"', body, count=1); replaced or sys.exit('[project] 内缺少 version 字段'); pyproject_path.write_text(py_text[: project.start(1)] + new_body + py_text[project.end(1):], encoding='utf-8'); print(f'版本同步完成：{cargo_version}')"
 
 # === 监视模式 ===
 

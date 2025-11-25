@@ -1,4 +1,5 @@
 import importlib
+
 import pytest
 
 spec = importlib.util.find_spec("industrydb")
