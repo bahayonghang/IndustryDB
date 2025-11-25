@@ -7,7 +7,10 @@ use industrydb_core::{
     traits::DatabaseConnector,
 };
 use polars::prelude::*;
-use sqlx::{Column as SqlxColumn, PgPool, Row, TypeInfo, postgres::PgRow};
+use sqlx::{
+    Column as SqlxColumn, PgPool, Row, TypeInfo,
+    postgres::{PgPoolOptions, PgRow},
+};
 
 /// PostgreSQL database connector with connection pool
 pub struct PostgresConnector {
@@ -27,8 +30,8 @@ impl PostgresConnector {
             config.database.as_deref().unwrap_or("postgres")
         );
 
-        let pool = PgPool::connect(&database_url)
-            .await
+        let pool = PgPoolOptions::new()
+            .connect_lazy(&database_url)
             .map_err(|e| IndustryDbError::ConnectionError(e.to_string()))?;
 
         Ok(Self {
