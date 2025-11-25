@@ -222,3 +222,6 @@ $RECYCLE.BIN/
 openspec/
 .claude/
 .spec-workflow/
+
+# 参考
+ref/
