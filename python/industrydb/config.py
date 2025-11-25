@@ -1,20 +1,28 @@
 """Configuration loading utilities for IndustryDB."""
 
+from collections.abc import Callable
+from importlib import import_module
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Union, cast
 
 # TOML library compatibility layer
 # Try rtoml (fastest), then tomllib (Python 3.11+), then tomli (fallback)
-# Note: Different libraries have different signatures, use Any for compatibility
-_toml_load: Any
+_TomlLoader = Callable[[Any], Any]
 
-try:
-    from rtoml import load as _toml_load
-except ImportError:
-    try:
-        from tomllib import load as _toml_load  # type: ignore[no-redef]
-    except ImportError:
-        from tomli import load as _toml_load  # type: ignore[no-redef]
+
+def _resolve_toml_loader() -> _TomlLoader:
+    for module_name in ("rtoml", "tomllib", "tomli"):
+        try:
+            module = import_module(module_name)
+        except ImportError:
+            continue
+        load_func = getattr(module, "load", None)
+        if callable(load_func):
+            return cast(_TomlLoader, load_func)
+    raise ImportError("No TOML parser with a 'load' function is available")
+
+
+_toml_load = _resolve_toml_loader()
 
 # ruff: noqa: E402
 from .industrydb import ConfigurationError

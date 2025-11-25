@@ -115,12 +115,7 @@ lint-rust:
 # Python 代码检查
 lint-python:
     @echo "🔍 Python 代码检查..."
-    @if command -v ruff >/dev/null 2>&1; then \
-        ruff check python/; \
-    else \
-        echo "⚠️  ruff 未安装，跳过 Python 检查"; \
-        echo "💡 运行 'just install-dev' 安装开发工具"; \
-    fi
+    @uv run ruff check python/
 
 # 格式化所有代码
 fmt: fmt-rust fmt-python
@@ -143,12 +138,7 @@ fmt-python:
 # 类型检查
 type-check:
     @echo "🔬 类型检查..."
-    @if command -v mypy >/dev/null 2>&1; then \
-        mypy python/industrydb; \
-    else \
-        echo "⚠️  mypy 未安装，跳过类型检查"; \
-        echo "💡 运行 'just install-dev' 安装开发工具"; \
-    fi
+    @uv run mypy python/industrydb --ignore-missing-imports
 
 # === 清理命令 ===
 

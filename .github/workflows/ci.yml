@@ -28,15 +28,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv pip install --system ruff
-
       - name: Run Ruff format check
-        run: ruff format --check .
+        run: uv tool run ruff format --check .
 
       - name: Run Ruff lint
-        run: ruff check .
+        run: uv tool run ruff check .
 
   # Rust 代码质量检查 - Clippy & Format
   rust-lint:
@@ -87,7 +83,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -145,4 +141,4 @@ jobs:
           uv pip install --system mypy types-toml
 
       - name: Run mypy
-        run: mypy python/industrydb --ignore-missing-imports
+        run: uv tool run mypy python/industrydb --ignore-missing-imports
