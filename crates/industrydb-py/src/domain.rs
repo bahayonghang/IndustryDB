@@ -18,6 +18,14 @@ use tokio::runtime::Runtime;
 use crate::config::PyDatabaseConfig;
 use crate::errors::to_py_err;
 
+type OptimizationInfo = (
+    Py<PyDict>,
+    Py<PyDict>,
+    Vec<String>,
+    Vec<String>,
+    Vec<Vec<String>>,
+);
+
 fn ensure_mssql(config: &ConnectionConfig) -> Result<(), IndustryDbError> {
     if config.db_type != DatabaseType::Mssql {
         Err(IndustryDbError::config_error("Config is not MSSQL"))
@@ -186,13 +194,7 @@ impl PyWebClient {
         &self,
         py: Python,
         project_name: String,
-    ) -> PyResult<(
-        Py<PyDict>,
-        Py<PyDict>,
-        Vec<String>,
-        Vec<String>,
-        Vec<Vec<String>>,
-    )> {
+    ) -> PyResult<OptimizationInfo> {
         let (args_df, cons_df, table_list, model_list, input_names) = self
             .runtime
             .block_on(self.inner.get_optimization_info(&project_name))
@@ -424,11 +426,7 @@ impl PyTimeSeriesClient {
         dataframe_to_py_dict(py, &df)
     }
 
-    fn get_latest_true_value_by_column(
-        &self,
-        py: Python,
-        col: String,
-    ) -> PyResult<Py<PyDict>> {
+    fn get_latest_true_value_by_column(&self, py: Python, col: String) -> PyResult<Py<PyDict>> {
         let df = self
             .runtime
             .block_on(self.inner.get_latest_true_value_by_column(&col))
@@ -444,11 +442,7 @@ impl PyTimeSeriesClient {
         dataframe_to_py_dict(py, &df)
     }
 
-    fn get_input_data_online(
-        &self,
-        py: Python,
-        names: Vec<String>,
-    ) -> PyResult<Py<PyDict>> {
+    fn get_input_data_online(&self, py: Python, names: Vec<String>) -> PyResult<Py<PyDict>> {
         let name_refs: Vec<&str> = names.iter().map(|s| s.as_str()).collect();
         let df = self
             .runtime
@@ -457,11 +451,7 @@ impl PyTimeSeriesClient {
         dataframe_to_py_dict(py, &df)
     }
 
-    fn get_output_data_online(
-        &self,
-        py: Python,
-        names: Vec<String>,
-    ) -> PyResult<Py<PyDict>> {
+    fn get_output_data_online(&self, py: Python, names: Vec<String>) -> PyResult<Py<PyDict>> {
         let name_refs: Vec<&str> = names.iter().map(|s| s.as_str()).collect();
         let df = self
             .runtime
@@ -1054,6 +1044,7 @@ impl PyModelStatusClient {
             .map_err(to_py_err)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn insert_model_status(
         &self,
         project_name: String,

@@ -1,7 +1,7 @@
 //! Python connection bindings
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::{IntoPyDict, PyAny, PyDict, PyList};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -89,7 +89,7 @@ impl PyConnection {
         py: Python,
         sql: String,
         params: Option<&Bound<'_, PyList>>,
-    ) -> PyResult<Py<PyDict>> {
+    ) -> PyResult<PyObject> {
         let conn = self.inner.as_ref().ok_or_else(|| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Connection is closed")
         })?;
@@ -101,7 +101,7 @@ impl PyConnection {
             .runtime
             .block_on(conn.execute(&sql))
             .map_err(to_py_err)?;
-        dataframe_to_py_dict(py, &df)
+        dataframe_to_py_polars(py, &df)
     }
 
     /// Insert data into table
@@ -109,14 +109,22 @@ impl PyConnection {
     fn insert(
         &self,
         table: String,
-        data: &Bound<'_, PyDict>,
+        data: Bound<'_, PyAny>,
         _kwargs: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<usize> {
         let conn = self.inner.as_ref().ok_or_else(|| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Connection is closed")
         })?;
 
-        let df = py_dict_to_dataframe(data)?;
+        let df = if let Ok(dict) = data.downcast::<PyDict>() {
+            py_dict_to_dataframe(dict)?
+        } else {
+            let kwargs = [("as_series", false)].into_py_dict_bound(data.py());
+            let obj = data.call_method("to_dict", (), Some(&kwargs))?;
+            let dict = obj.downcast::<PyDict>()?;
+            py_dict_to_dataframe(dict)?
+        };
+
         let rows = self
             .runtime
             .block_on(conn.insert(&table, df))
@@ -136,7 +144,7 @@ impl PyConnection {
         params: Option<&Bound<'_, PyList>>,
         limit: Option<usize>,
         _kwargs: Option<&Bound<'_, PyDict>>,
-    ) -> PyResult<Py<PyDict>> {
+    ) -> PyResult<PyObject> {
         let conn = self.inner.as_ref().ok_or_else(|| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Connection is closed")
         })?;
@@ -148,7 +156,7 @@ impl PyConnection {
             .block_on(conn.select(&table, columns.as_deref(), where_clause.as_deref(), limit))
             .map_err(to_py_err)?;
 
-        dataframe_to_py_dict(py, &df)
+        dataframe_to_py_polars(py, &df)
     }
 
     /// Update rows in table
@@ -258,6 +266,14 @@ async fn create_connector(
             Ok(Box::new(connector))
         }
     }
+}
+
+/// Convert Polars DataFrame to Python Polars DataFrame
+fn dataframe_to_py_polars(py: Python, df: &polars::prelude::DataFrame) -> PyResult<PyObject> {
+    let dict = dataframe_to_py_dict(py, df)?;
+    let polars = py.import_bound("polars")?;
+    let py_df = polars.getattr("DataFrame")?.call1((dict,))?;
+    Ok(py_df.into_py(py))
 }
 
 /// Convert Polars DataFrame to Python dict
